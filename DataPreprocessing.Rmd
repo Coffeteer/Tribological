@@ -1,0 +1,103 @@
+
+
+
+```{r}
+library(R.matlab)
+```
+
+```{r eval=FALSE}
+# read in our data
+df <- readMat("Ti20Mat.mat")
+data <- as.data.frame(df[["Ti20"]][[6]])
+df1 <- readMat("Mn20Mat.mat")
+data1 <- as.data.frame(df1[["Mn20"]][[6]])
+df2 <- readMat("Cr20Mat.mat")
+data2 <- as.data.frame(df2[["Cr20"]][[6]])
+df3 <- readMat("Mn2Mat.mat")
+data3 <- as.data.frame(df3[["Mn2"]][[6]])
+# check out data structure
+
+```
+
+```{r}
+# Specify the path to your folder
+folder_path <- "./Mat_files"
+
+# Get the list of file names in the folder
+file_names <- list.files(folder_path, full.names = TRUE)
+
+# Create an empty list to store dataframes
+all_dataframes <- list()
+
+# Loop through each file and read it into a dataframe
+for (file in file_names) {
+  mat_file <- readMat(file)
+  name_part <- sub("Mat.mat", "", basename(file)) # Extract "Mn20"
+  
+  # APS extraction and conversion
+  data <- as.data.frame(mat_file[[name_part]][[6]]) #Use it to extract average Plus Stnd List form
+  # Extract the column names 
+  names <- c()
+  for (i in 1:14) {
+    names[i] <- as.character(data[[1, i]])
+  }
+  # Extract the data from list to a matrix
+  holder <- matrix(nrow  = dim(data[1])-1, ncol = 14)
+  for (i in 1:14) {
+    for (j in 2:dim(data)[1]) {
+      holder[j-1, i] <- as.numeric(data[[j, i]])
+    }
+  }
+  # Convert matrix to data frame with appropriate names for columns
+  data_extract <- as.data.frame(holder)
+  colnames(data_extract) <- names
+  
+  # Create DF name unique to experiment
+  APS_name <- paste0(sub("Mat.mat","", basename(file)), "_averagePlusStd") 
+  # assign dataframe to unique name
+  assign(APS_name, data_extract) 
+  # Store the dataframe in the list
+  all_dataframes[[APS_name]] <- data  
+  # Save the file as an rds
+  rds_filename <- paste0("./RDS_files/", APS_name, ".rds")
+  saveRDS(APS_name, file = rds_filename)
+  
+  # Overview Extraction and conversion
+  
+  
+  # data Extraction and conversion
+}
+
+# If you want to combine all dataframes into a single dataframe
+# combined_dataframe <- do.call(rbind, all_dataframes)
+```
+
+
+
+```{r Extract Avg Plus Stnd}
+
+
+```
+
+```{r}
+averagePlusStd_Mn2Mat <- data_extract
+```
+
+```{r Save read RDS files}
+saveRDS(averagePlusStd_Mn2Mat, file = "averagePlusStd_Mn2.rds")
+readRDS(file = "averagePlusStd_Mn2.rds")
+```
+
+```{python}
+reticulate::virtualenv_create('r-reticulate')
+from scipy.io import loadmat
+
+# Replace 'your_file.mat' with the actual file path
+mat_data = loadmat('./Mat_file/Cr20Mat.mat')
+
+# Access the variables in the .mat file
+your_variable = mat_data['your_variable_name']
+```
+
+
+
