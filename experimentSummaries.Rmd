@@ -1,0 +1,51 @@
+---
+title: "Experiment Summaries"
+author: "Ethan Chapman"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+APS <-readRDS(file = "./RDS_files/averagePlusStd_df.rds")
+Overview <- readRDS(file = "./RDS_files/overview_df.rds")
+Data <- readRDS(file = "./RDS_files/data_df.rds")
+```
+
+```{r}
+exp_start <- Data %>%
+  group_by(Experiment_Name) %>%
+  filter(!is.na(mass)) %>%
+  mutate(start_mass = ifelse(Experiment==0, mass, NA)) %>%
+  summarise(start_mass = max(start_mass, na.rm=TRUE))
+
+exps <- right_join(Overview, exp_start, by=c("SampleID" = "Experiment_Name"))
+
+dataWithMetrics <- Data %>%
+  inner_join(exps, by=c("Experiment_Name"="SampleID")) %>%
+  mutate(mass_lost = start_mass - mass,
+         vol_lost = mass_lost/density,
+         wear_rate = vol_lost/FnD)
+
+experimentSummaries <- dataWithMetrics %>%
+  group_by(Experiment_Name) %>%
+  summarise(wear_rate = tail(na.exclude(wear_rate))[1],
+            mu = mean(mu, na.rm=TRUE),
+            Fn = mean(Fn, na.rm=TRUE),
+            Distance = max(TotalDistance),
+            Sample = Sample[1],
+            Project = Project[1],
+            Countersample = Countersample[1],
+            Stroke = Stroke[1],
+            Velocity = Velocity[1],
+            Temperature = mean(T, na.rm=TRUE),
+            Minor2 = Minor2[1],
+            Percent2 = Percent2[1],
+            Minor3 = Minor3[1],
+            Percent3 = Percent3[1])
+
+saveRDS(experimentSummaries, file = "./RDS_files/experiment_summaries.rds")
+```
