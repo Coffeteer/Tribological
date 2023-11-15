@@ -1,23 +1,29 @@
 
 
 
-```{r}
+```{r Load Libraries, warning=FALSE, message=FALSE}
 library(R.matlab)
+library(purrr)
+library(tidyverse)
 ```
 
-```{r eval=FALSE}
-# read in our data
-df <- readMat("Ti20Mat.mat")
-data <- as.data.frame(df[["Ti20"]][[6]])
-df1 <- readMat("Mn20Mat.mat")
-data1 <- as.data.frame(df1[["Mn20"]][[6]])
-df2 <- readMat("Cr20Mat.mat")
-data2 <- as.data.frame(df2[["Cr20"]][[6]])
-df3 <- readMat("Mn2Mat.mat")
-data3 <- as.data.frame(df3[["Mn2"]][[6]])
-# check out data structure
 
+```{r Prepare Names and dataframes}
+overview_names <- c("TribometerNumber", "EnableLog", "Sample", "SampleID", "Project", "Countersample", "Load", "Date", "Stroke", "Velocity", "User", "Environment", "OtherDetails", "L", "W", "H", "initialmass", "initialmassWithHolder", "initialReferenceMass", "density", "Major1", "Percent1", "Minor2", "Percent2", "Minor3", "Percent3", "Minor4", "Percent4", "Minor5", "Percent5", "Minor6", "Percent6")
+
+data_names <- c("Experiment", "CompleteLog", "TestCycles", "TotalCycles", "TestStroke", "TestDistance", "TotalDistance", "Date", "mass", "umass", "massWithHolder", "referenceMass", "V", "uV", "Fn", "FnStd", "FnD", "uFnD", "mu", "muStd", "KtotalMonte", "UKMonteTotal", "BKMonteTotal", "KtestMonteN2", "UKMonteN2", "BMonteN2", "KtestMonteN3", "UKMonteN3", "BMonteN3", "KtestMonteN4", "UKMonteN4", "BMonteN4","KtestMonteN5", "UKMonteN5", "BMonteN5", "uFn", "ud", "T", "x_RH", "x_O2", "Experiment_Name")
+
+averagePlusStd_names <- c("time", "Fn1", "Ff1", "Humidity", "X", "MotorRev", "mu1", "time_std", "Fn1_std", "Ff1_std",      "Humidity_std", "X_std", "MotorRev_std", "mu1_std", "Experiment_Name")
+
+data_df <- data.frame(matrix(ncol = 41, nrow = 0))
+overview_df <- data.frame(matrix(ncol = 32, nrow = 0))
+averagePlusStd_df <- data.frame(matrix(ncol = 15, nrow = 0))
+
+
+# Create an empty list to store dataframes
+all_dataframes <- list()
 ```
+
 
 ```{r}
 # Specify the path to your folder
@@ -26,21 +32,12 @@ folder_path <- "./Mat_files"
 # Get the list of file names in the folder
 file_names <- list.files(folder_path, full.names = TRUE)
 
-# Create an empty list to store dataframes
-all_dataframes <- list()
-
 # Loop through each file and read it into a dataframe
 for (file in file_names) {
   mat_file <- readMat(file)
-  name_part <- sub("Mat.mat", "", basename(file)) # Extract "Mn20"
-  
+  name_part <- sub("Mat2.mat", "", basename(file)) # Extract "Mn20"or name of experiment
   # APS extraction and conversion
-  data <- as.data.frame(mat_file[[name_part]][[6]]) #Use it to extract average Plus Stnd List form
-  # Extract the column names 
-  names <- c()
-  for (i in 1:14) {
-    names[i] <- as.character(data[[1, i]])
-  }
+  data <- as.data.frame(mat_file[["loaded.data"]][[1]][[6]]) #Use it to extract average Plus Stnd List form
   # Extract the data from list to a matrix
   holder <- matrix(nrow  = dim(data[1])-1, ncol = 14)
   for (i in 1:14) {
@@ -48,56 +45,57 @@ for (file in file_names) {
       holder[j-1, i] <- as.numeric(data[[j, i]])
     }
   }
-  # Convert matrix to data frame with appropriate names for columns
-  data_extract <- as.data.frame(holder)
-  colnames(data_extract) <- names
-  
-  # Create DF name unique to experiment
-  APS_name <- paste0(sub("Mat.mat","", basename(file)), "_averagePlusStd") 
-  # assign dataframe to unique name
-  assign(APS_name, data_extract) 
-  # Store the dataframe in the list
-  all_dataframes[[APS_name]] <- data  
-  # Save the file as an rds
-  rds_filename <- paste0("./RDS_files/", APS_name, ".rds")
-  saveRDS(APS_name, file = rds_filename)
+  # Convert matrix to data frame and add a column with the experiment name
+  holder_df <-as.data.frame(holder) %>% 
+    mutate(V15 = name_part) 
+  colnames(holder_df) <- names(averagePlusStd_df)
+  # Add to master APS df
+  averagePlusStd_df <- rbind(averagePlusStd_df, holder_df)
   
   # Overview Extraction and conversion
-  
+  overview_list <- mat_file[["overview.cell"]]
+  # Flatten the nested list
+  flattened_list <- map(overview_list, ~.[[1]])
+  # Convert the flattened list to a data frame
+  flat_df <- as.data.frame(flattened_list, stringsAsFactors = FALSE)
+  colnames(flat_df) <- names(overview_df)
+  # Add to master overview df
+  overview_df <- rbind(overview_df, flat_df)
   
   # data Extraction and conversion
+  
+  holder <- matrix(nrow  = 14, ncol = 40)
+  for (j in 1:40) {
+    for (i in 1:14) {
+      holder[i, j] <- as.numeric(mat_file[["data.cell"]][[i,j]])
+    }
+  }
+  holder_df <- as.data.frame(holder) %>% 
+    mutate(V41 = name_part)
+  colnames(holder_df) <- names(data_df)
+  # Add to master data df
+  data_df <- rbind(data_df, holder_df)
 }
 
-# If you want to combine all dataframes into a single dataframe
-# combined_dataframe <- do.call(rbind, all_dataframes)
 ```
 
 
-
-```{r Extract Avg Plus Stnd}
-
-
+```{r Set DF Names}
+colnames(averagePlusStd_df) <- averagePlusStd_names
+colnames(overview_df) <- overview_names
+colnames(data_df) <- data_names
 ```
 
-```{r}
-averagePlusStd_Mn2Mat <- data_extract
-```
 
 ```{r Save read RDS files}
-saveRDS(averagePlusStd_Mn2Mat, file = "averagePlusStd_Mn2.rds")
-readRDS(file = "averagePlusStd_Mn2.rds")
+saveRDS(averagePlusStd_df, file = "./RDS_files/averagePlusStd_df.rds")
+saveRDS(overview_df, file = "./RDS_files/overview_df.rds")
+saveRDS(data_df, file = "./RDS_files/data_df.rds")
+APS <-readRDS(file = "./RDS_files/averagePlusStd_df.rds")
+Overview <- readRDS(file = "./RDS_files/overview_df.rds")
+Data <- readRDS(file = "./RDS_files/data_df.rds")
 ```
 
-```{python}
-reticulate::virtualenv_create('r-reticulate')
-from scipy.io import loadmat
-
-# Replace 'your_file.mat' with the actual file path
-mat_data = loadmat('./Mat_file/Cr20Mat.mat')
-
-# Access the variables in the .mat file
-your_variable = mat_data['your_variable_name']
-```
 
 
 
