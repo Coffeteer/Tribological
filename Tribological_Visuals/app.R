@@ -1,25 +1,16 @@
-#
-# This is a Shiny web application. You can run the application by clicking
-# the 'Run App' button above.
-#
-# Find out more about building applications with Shiny here:
-#
-#    http://shiny.rstudio.com/
-#
-
-# Install necessary packages if not already installed
-# install.packages(c("shiny", "plotly"))
-
 library(shiny)
 library(plotly)
+library(DT)
+library(tidyverse)
 
+experiment_data <- readRDS("..//RDS_files//experiment_summaries.rds")
 # Sample data (replace this with your actual data)
 sample_data <- data.frame(
-  Distance = seq(1, 100, by = 5),
-  VolumeLost = rnorm(20, mean = 0, sd = 5),
-  FrictionCoefficient = rnorm(20, mean = 0.5, sd = 0.1), #mu in Data
-  CycleNumber = rep(1:5, each = 4),
-  Ktotal = rnorm(20, mean = 0, sd = 5),
+  Distance = seq(1, 100, by = 5), #testDistance or TotalDistance in Data
+  VolumeLost = rnorm(20, mean = 0, sd = 5), # 
+  FrictionCoefficient = rnorm(20, mean = 0.5, sd = 0.1), #mu in Data or mu1 in APS
+  CycleNumber = rep(1:5, each = 4), #time in APS
+  Ktotal = rnorm(20, mean = 0, sd = 5), # all in Data
   K_MC1 = rnorm(20, mean = 0, sd = 5),
   K_MC2 = rnorm(20, mean = 0, sd = 5),
   K_MC3 = rnorm(20, mean = 0, sd = 5),
@@ -29,27 +20,52 @@ sample_data <- data.frame(
 
 # Define UI
 ui <- fluidPage(
-  titlePanel("Data Visualizations"),
+  titlePanel("Data Visualizations for Tribological Experimental Data"),
   
-  sidebarLayout(
-    sidebarPanel(
-      checkboxGroupInput("plot_types", "Select Plot Types", c("Scatter Plot", "Bar Chart")),
-      selectInput("sample", "Select Sample", choices = unique(sample_data$CycleNumber)),
-      selectInput("scale", "Select Scale", choices = c("Linear", "Log-Log", "Semi-Log")),
-      checkboxInput("add_legend", "Add Legend", value = TRUE),
-      textInput("point_shape", "Point Shape", value = 16),
-      textInput("point_color", "Point Color", value = "blue"),
-      textInput("line_color", "Line Color", value = "red")
+  
+  tabsetPanel(
+    tabPanel("Experiment Summary Explorer Table", 
+             mainPanel(
+               DTOutput("table")  
+    )),
+    
+    tabPanel("Experiment APS Scatter Plot Visualizations", 
+      sidebarLayout(
+        sidebarPanel(
+          checkboxGroupInput("plot_types", "Select Plot Types", c("Scatter Plot", "Bar Chart")),
+          selectInput("sample", "Select Sample", choices = unique(sample_data$CycleNumber)),
+          selectInput("scale", "Select Scale", choices = c("Linear", "Log-Log", "Semi-Log")),
+          checkboxInput("add_legend", "Add Legend", value = TRUE),
+          textInput("point_shape", "Point Shape", value = 16),
+          textInput("point_color", "Point Color", value = "blue"),
+          textInput("line_color", "Line Color", value = "red")
+        ),
+        mainPanel(
+          plotlyOutput("plot")
+        )
+      )
     ),
     
-    mainPanel(
-      plotlyOutput("plot")
-    )
+    tabPanel("Experiment Cycle Number Scatter Visualizations", 
+             plotOutput("plot3")), ## Replace "plot3" with name of plot
+    
+    tabPanel("Experiment Bar Chart Visualizations", 
+             plotOutput("plot4")) ## Replace "plot4" with name of plot
   )
+
 )
 
 # Define server
 server <- function(input, output) {
+  
+  
+  output$table <- renderDT({
+    datatable(experiment_data) %>%
+      formatRound(columns=c('mu', "Fn"), digits = 3) %>%
+      formatSignif(columns = "wear_rate", digits =  2)
+  })  
+  
+  
   output$plot <- renderPlotly({
     # Filter data based on selected sample
     filtered_data <- subset(sample_data, CycleNumber == input$sample)
@@ -141,6 +157,11 @@ server <- function(input, output) {
       bar_chart
     }
   })
+  
+  ## Add tab 3 plot3 plots
+  
+  ## Add tab 4 plot4 plots
+
 }
 
 # Run the Shiny app
