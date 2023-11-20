@@ -16,6 +16,8 @@ Data <- readRDS(file = "./RDS_files/data_df.rds")
 ```
 
 ```{r}
+library(dplyr)
+
 exp_start <- Data %>%
   group_by(Experiment_Name) %>%
   filter(!is.na(mass)) %>%
@@ -45,7 +47,14 @@ experimentSummaries <- dataWithMetrics %>%
             Minor2 = Minor2[1],
             Percent2 = Percent2[1],
             Minor3 = Minor3[1],
-            Percent3 = Percent3[1])
+            Percent3 = Percent3[1],
+            Minor4 = Minor4[1],
+            Percent4 = Percent4[1],
+            Minor5 = Minor5[1],
+            Percent5 = Percent5[1],
+            Minor6 = Minor6[1],
+            Percent6 = Percent6[1])
 
 saveRDS(experimentSummaries, file = "./RDS_files/experiment_summaries.rds")
 ```
+
