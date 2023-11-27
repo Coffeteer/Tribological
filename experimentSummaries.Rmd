@@ -32,6 +32,11 @@ dataWithMetrics <- Data %>%
          vol_lost = mass_lost/density,
          wear_rate = vol_lost/FnD)
 
+APSWithMetrics <- APS %>%
+  inner_join(exps, by=c("Experiment_Name"="SampleID"))
+
+saveRDS(APSWithMetrics, file = "./RDS_files/aps_metrics.rds")
+
 experimentSummaries <- dataWithMetrics %>%
   group_by(Experiment_Name) %>%
   summarise(wear_rate = tail(na.exclude(wear_rate))[1],
