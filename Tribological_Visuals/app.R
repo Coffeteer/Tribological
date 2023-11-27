@@ -3,7 +3,8 @@ library(plotly)
 library(DT)
 library(tidyverse)
 
-experiment_data <- readRDS("..//RDS_files//experiment_summaries.rds")
+expsum <- readRDS("..//RDS_files//experiment_summaries.rds")
+Data <- readRDS(file = "../RDS_files/data_df.rds")
 # Sample data (replace this with your actual data)
 sample_data <- data.frame(
   Distance = seq(1, 100, by = 5), #testDistance or TotalDistance in Data
@@ -20,8 +21,14 @@ sample_data <- data.frame(
 
 # Define UI
 ui <- fluidPage(
-  titlePanel("Data Visualizations for Tribological Experimental Data"),
   
+  tags$style(HTML("
+    body {
+      background-color: #FDF7F7; 
+    }
+  ")),
+  
+  titlePanel("Data Visualizations for Tribological Experimental Data"),
   
   tabsetPanel(
     tabPanel("Experiment Summary Explorer Table", 
@@ -34,7 +41,7 @@ ui <- fluidPage(
         sidebarPanel(
           checkboxGroupInput("plot_types", "Select Plot Types", c("Scatter Plot", "Bar Chart")),
           selectInput("sample", "Select Sample", choices = unique(sample_data$CycleNumber)),
-          selectInput("scale", "Select Scale", choices = c("Linear", "Log-Log", "Semi-Log")),
+          selectInput("scale2", "Select Scale", choices = c("Linear", "Log-Log", "Semi-Log")),
           checkboxInput("add_legend", "Add Legend", value = TRUE),
           textInput("point_shape", "Point Shape", value = 16),
           textInput("point_color", "Point Color", value = "blue"),
@@ -49,18 +56,34 @@ ui <- fluidPage(
     tabPanel("Experiment Cycle Number Scatter Visualizations", 
              plotOutput("plot3")), ## Replace "plot3" with name of plot
     
-    tabPanel("Experiment Bar Chart Visualizations", 
-             plotOutput("plot4")) ## Replace "plot4" with name of plot
-  )
+    tabPanel("Experiment Bar Chart Visualizations",
+          sidebarLayout(
+             sidebarPanel(
+               selectInput(inputId = "experiment",
+                           label = "Experiment",
+                           choices=expsum$Experiment_Name),
+               selectInput(inputId = "metric",
+                           label = "Metric",
+                           choices=c("COF", "Ktotal", "K_MC2", "K_MC3", "K_MC4", "K_MC5")),
+               selectInput("scale", "Select Scale", choices = c("Linear", "Log")),
+               textInput("bar_color", "Bar Color", value = "#B61E2E")
+             ),
+             mainPanel(
+               plotlyOutput(outputId = "barPlot")
+             )
+          )
+    )
+))
 
-)
+
+metricMap <- list("COF" = "mu", "Ktotal" = "KtotalMonte", "K_MC2" = "KtestMonteN2", "K_MC3" = "KtestMonteN3", "K_MC4" = "KtestMonteN4", "K_MC5" = "KtestMonteN5")
 
 # Define server
 server <- function(input, output) {
   
   
   output$table <- renderDT({
-    datatable(experiment_data) %>%
+    datatable(expsum) %>%
       formatRound(columns=c('mu', "Fn"), digits = 3) %>%
       formatSignif(columns = "wear_rate", digits =  2)
   })  
@@ -140,7 +163,7 @@ server <- function(input, output) {
     }
     
     # Apply scale
-    if (input$scale == "Log-Log") {
+    if (input$scale2 == "Log-Log") {
       scatter_plot <- scatter_plot %>% layout(xaxis = list(type = "log"), yaxis = list(type = "log"))
       bar_chart <- bar_chart %>% layout(xaxis = list(type = "log"), yaxis = list(type = "log"))
     } else if (input$scale == "Semi-Log") {
@@ -161,7 +184,25 @@ server <- function(input, output) {
   ## Add tab 3 plot3 plots
   
   ## Add tab 4 plot4 plots
-
+  
+  output$barPlot <- renderPlotly({
+    selectedCol <- metricMap[input$metric][[1]]
+    selectedData <- filter(Data, Experiment_Name == input$experiment) %>%
+      rename(metric = unlist(selectedCol))
+    maxExp <- max(selectedData$Experiment)
+    plot <- ggplot(selectedData, aes(x=Experiment, y=metric)) +
+      geom_col(fill = input$bar_color) +
+      theme_minimal() +
+      scale_x_continuous(limits=c(.5, maxExp+.5), breaks=1:maxExp) +
+      labs(x="Cycle Number", y=input$metric)
+    
+    if(input$scale == "Log") {
+      plot <- plot +
+        scale_y_log10()
+    }
+    
+    plot
+  })
 }
 
 # Run the Shiny app
