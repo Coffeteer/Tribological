@@ -11,7 +11,7 @@ library(shiny)
 library(ggplot2)
 library(dplyr)
 
-APSmetrics <- readRDS("/Users/dikshagulati/Desktop/STA 475 Proj2/aps_metrics.rds")
+APSmetrics <- readRDS("..//RDS_files//aps_metrics.rds")
 
 APSmetrics <- APSmetrics %>%
     mutate(DistSlid = time*Stroke)
@@ -26,7 +26,7 @@ ui <- fluidPage(
     sidebarLayout(
         sidebarPanel(
             selectInput(inputId="exp", label="Select the Experiment (Material)",
-                        choices=unique(averagePlusStd$Experiment_Name)),
+                        choices=unique(APSmetrics$Experiment_Name)),
             selectInput(inputId="yvar", label="Select the y axis variable",
                         choices= c("Normal force",
                                    "Friction force", 
