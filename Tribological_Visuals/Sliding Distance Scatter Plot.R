@@ -315,12 +315,20 @@ server <- function(input, output) {
     plot1 <- plot1 + theme_bw()+
       theme(plot.title = element_text(hjust = 0.5, size=12))
     
-    
     # create plotly
-    ggplotly(plot1, height=700, tooltip="text") %>% 
+    scatterplotly <- ggplotly(plot1, height=700, tooltip="text") %>% 
       layout(font=list(size=12), 
              margin=list(l=50,r=50,b=50,t=50),
              legend = list(orientation = 'h'))
+    
+    # edit plotly legend
+    if (input$colors && input$shapes) {
+      scatterplotly <- scatterplotly %>% style(showlegend = FALSE, 
+                                               traces = (length(input$exp)+1):(length(input$exp)*2))
+    }
+    
+    return(scatterplotly)
+    
   })
   
 }
