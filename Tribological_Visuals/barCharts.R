@@ -16,7 +16,8 @@ ui <- fluidPage(
                 label = "Metric",
                 choices=c("COF", "Ktotal", "K_MC2", "K_MC3", "K_MC4", "K_MC5")),
     selectInput("scale", "Select Scale", choices = c("Linear", "Log")),
-    textInput("bar_color", "Bar Color", value = "black")
+    textInput("bar_color", "Bar Color", value = "black"),
+    downloadButton("downloadBar", "Download")
   ),
   
   mainPanel(
@@ -45,6 +46,18 @@ server <- function(input, output) {
     
     plot
   })
+  
+  output$downloadBar <- downloadHandler(
+    filename = function() {
+      paste0(input$experiment, ".csv")
+    },
+    content = function(file) {
+      selectedCol <- metricMap[input$metric][[1]]
+      selectedData <- filter(Data, Experiment_Name == input$experiment) %>%
+        select(Experiment_Name, Experiment, unlist(selectedCol))
+      write.csv(selectedData, file, row.names = FALSE)
+    }
+  )
 }
 
 shinyApp(ui = ui, server = server)
