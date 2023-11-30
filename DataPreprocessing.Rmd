@@ -97,5 +97,29 @@ Data <- readRDS(file = "./RDS_files/data_df.rds")
 ```
 
 
+$V_{loss} = \frac{m_{loss}}{\frac{m_{initial}}{LWH}}$
+
+$\sigma_V = \sqrt{\left(\frac{1}{\frac{m_{initial}}{LWH}} \sigma_{m_{\text{loss}}}\right)^2 + \left(\frac{-m_{\text{loss}}}{\frac{m_{initial}^2}{LWH}} \sigma_{m_{initial}}\right)^2  + \left(\frac{m_{\text{loss}}}{\frac{m_{initial}}{WH}} \sigma_{L}\right)^2 + \left(\frac{m_{\text{loss}}}{\frac{m_{initial}}{LH}} \sigma_{W}\right)^2+ \left(\frac{m_{\text{loss}}}{\frac{m_{initial}}{LW}} \sigma_{H}\right)^2}$
+
+```{r}
+# Needs to add best estimates (usually mean of sample) for L, W, H, m_initial, and m_loss
+# Needs to either calculate uncertainty values (using CI and calculated sample stdev) or possibly take the mean of the reported uncertainty values in the data set.
+sigma_m_initial <-
+sigma_m_loss <-
+sigma_L <-
+sigma_W <-
+sigma_H <-
+L <-
+H <-
+W <-
+m_initial <-
+m_loss <-
+sigma_V <- sqrt((sigma_m_loss / (m_initial / (L*W*H)))^2 + 
+                  ((-m_loss*sigma_m_initial) / (m_initial^2 / (L*W*H)))^2 + 
+                  ((m_loss*sigma_L) / (m_initial / (W*H)))^2 + 
+                  ((m_loss*sigma_W) / (m_initial / (L*H)))^2 + 
+                  ((m_loss*sigma_H) / (m_initial / (L*W)))^2)
+```
+
 
 

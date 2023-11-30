@@ -330,7 +330,6 @@ server <- function(input, output) {
     return(scatterplotly)
     
   })
-  
 }
 
 shinyApp(ui = ui, server = server)
