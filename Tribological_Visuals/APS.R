@@ -14,7 +14,7 @@ library(dplyr)
 APSmetrics <- readRDS("..//RDS_files//aps_metrics.rds")
 
 APSmetrics <- APSmetrics %>%
-    mutate(DistSlid = time*Stroke)
+    mutate(DistSlid = 2*time*Stroke)
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(
@@ -36,8 +36,9 @@ ui <- fluidPage(
                                    "Friction Coefficient")),
             selectInput(inputId="xvar", label="Select the x axis variable",
                                     choices= c("Distance Slid", 
-                                               "Cycle number")
-        )),
+                                               "Cycle number")),
+            downloadButton("downloadBar", "Download Data")
+        ),
 
         # Show a plot of the generated distribution
         mainPanel(
@@ -72,6 +73,19 @@ server <- function(input, output) {
             theme_bw() +
             labs(title="", x=input$xvar, y=input$yvar)
     })
+    
+    output$downloadBar <- downloadHandler(
+        filename = function() {
+            paste0(input$exp, "-", input$xvar, " vs ", input$yvar,  ".csv")
+        },
+        content = function(file) {
+            selectedyCol <- yvarMap[input$yvar][[1]]
+            selectedxCol <- xvarMap[input$xvar][[1]]
+            selectedData <- dplyr::filter(APSmetrics, Experiment_Name %in% !!input$exp) %>%
+                select(unlist(selectedxCol), unlist(selectedyCol))
+            write.csv(selectedData, file, row.names = FALSE)
+        }
+    )
 }
 
 # Run the application 
