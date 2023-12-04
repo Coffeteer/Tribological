@@ -13,11 +13,14 @@ overview_names <- c("TribometerNumber", "EnableLog", "Sample", "SampleID", "Proj
 
 data_names <- c("Experiment", "CompleteLog", "TestCycles", "TotalCycles", "TestStroke", "TestDistance", "TotalDistance", "Date", "mass", "umass", "massWithHolder", "referenceMass", "V", "uV", "Fn", "FnStd", "FnD", "uFnD", "mu", "muStd", "KtotalMonte", "UKMonteTotal", "BKMonteTotal", "KtestMonteN2", "UKMonteN2", "BMonteN2", "KtestMonteN3", "UKMonteN3", "BMonteN3", "KtestMonteN4", "UKMonteN4", "BMonteN4","KtestMonteN5", "UKMonteN5", "BMonteN5", "uFn", "ud", "T", "x_RH", "x_O2", "Experiment_Name")
 
-averagePlusStd_names <- c("time", "Fn1", "Ff1", "Humidity", "X", "MotorRev", "mu1", "time_std", "Fn1_std", "Ff1_std",      "Humidity_std", "X_std", "MotorRev_std", "mu1_std", "Experiment_Name")
+averagePlusStd_names <- c("time", "Fn1", "Ff1", "Humidity", "X", "MotorRev", "mu1", "time_std", "Fn1_std", "Ff1_std", "Humidity_std", "X_std", "MotorRev_std", "mu1_std", "Experiment_Name")
+
+tribometer_names <- c("un", "uf", "ud", "um", "ul", "pe", "po")
 
 data_df <- data.frame(matrix(ncol = 41, nrow = 0))
 overview_df <- data.frame(matrix(ncol = 32, nrow = 0))
 averagePlusStd_df <- data.frame(matrix(ncol = 15, nrow = 0))
+tribometer_df <- data.frame(matrix(ncol = 7, nrow = 0))
 
 
 # Create an empty list to store dataframes
@@ -27,7 +30,7 @@ all_dataframes <- list()
 
 ```{r}
 # Specify the path to your folder
-folder_path <- "./Mat_files"
+folder_path <- "./Mat_files_new"
 
 # Get the list of file names in the folder
 file_names <- list.files(folder_path, full.names = TRUE)
@@ -75,7 +78,18 @@ for (file in file_names) {
   colnames(holder_df) <- names(data_df)
   # Add to master data df
   data_df <- rbind(data_df, holder_df)
-}
+  
+  # trib extraction and conversion
+  trib_list <- mat_file[["tribometer.cell"]]
+  # Flatten the nested list
+  flattened_list <- map(trib_list, ~.[[1]])
+  # Convert the flattened list to a data frame
+  flat_df <- as.data.frame(flattened_list, stringsAsFactors = FALSE)
+  colnames(flat_df) <- names(tribometer_df)
+  # Add to master overview df
+  tribometer_df <- rbind(tribometer_df, flat_df)
+  
+  }
 
 ```
 
@@ -84,42 +98,26 @@ for (file in file_names) {
 colnames(averagePlusStd_df) <- averagePlusStd_names
 colnames(overview_df) <- overview_names
 colnames(data_df) <- data_names
+colnames(tribometer_df) <- tribometer_names
 ```
+
+```{r}
+
+trib_vec <- sub("Mat2.mat", "", basename(file_names))
+tribometer_df$experiment <- trib_vec
+```
+
 
 
 ```{r Save read RDS files}
-saveRDS(averagePlusStd_df, file = "./RDS_files/averagePlusStd_df.rds")
-saveRDS(overview_df, file = "./RDS_files/overview_df.rds")
-saveRDS(data_df, file = "./RDS_files/data_df.rds")
-APS <-readRDS(file = "./RDS_files/averagePlusStd_df.rds")
-Overview <- readRDS(file = "./RDS_files/overview_df.rds")
-Data <- readRDS(file = "./RDS_files/data_df.rds")
+saveRDS(averagePlusStd_df, file = "./RDS_files_new/averagePlusStd_df.rds")
+saveRDS(overview_df, file = "./RDS_files_new/overview_df.rds")
+saveRDS(data_df, file = "./RDS_files_new/data_df.rds")
+saveRDS(tribometer_df, file = "./RDS_files_new/tribometer_df.rds")
 ```
 
 
-$V_{loss} = \frac{m_{loss}}{\frac{m_{initial}}{LWH}}$
 
-$\sigma_V = \sqrt{\left(\frac{1}{\frac{m_{initial}}{LWH}} \sigma_{m_{\text{loss}}}\right)^2 + \left(\frac{-m_{\text{loss}}}{\frac{m_{initial}^2}{LWH}} \sigma_{m_{initial}}\right)^2  + \left(\frac{m_{\text{loss}}}{\frac{m_{initial}}{WH}} \sigma_{L}\right)^2 + \left(\frac{m_{\text{loss}}}{\frac{m_{initial}}{LH}} \sigma_{W}\right)^2+ \left(\frac{m_{\text{loss}}}{\frac{m_{initial}}{LW}} \sigma_{H}\right)^2}$
-
-```{r}
-# Needs to add best estimates (usually mean of sample) for L, W, H, m_initial, and m_loss
-# Needs to either calculate uncertainty values (using CI and calculated sample stdev) or possibly take the mean of the reported uncertainty values in the data set.
-sigma_m_initial <-
-sigma_m_loss <-
-sigma_L <-
-sigma_W <-
-sigma_H <-
-L <-
-H <-
-W <-
-m_initial <-
-m_loss <-
-sigma_V <- sqrt((sigma_m_loss / (m_initial / (L*W*H)))^2 + 
-                  ((-m_loss*sigma_m_initial) / (m_initial^2 / (L*W*H)))^2 + 
-                  ((m_loss*sigma_L) / (m_initial / (W*H)))^2 + 
-                  ((m_loss*sigma_W) / (m_initial / (L*H)))^2 + 
-                  ((m_loss*sigma_H) / (m_initial / (L*W)))^2)
-```
 
 
 

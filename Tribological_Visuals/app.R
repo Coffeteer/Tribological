@@ -10,7 +10,7 @@ Data <- readRDS(file = "../RDS_files/data_df.rds")
 overview.df <- readRDS("..//RDS_files//overview_df.rds")
 data.df <- Data
 APSmetrics <- APSmetrics %>%
-  mutate(DistSlid = time*Stroke)
+  mutate(DistSlid = 2*time*Stroke)
 
 # read in data
 
@@ -73,7 +73,7 @@ ui <- fluidPage(
              )
     ),
     
-    tabPanel("Experiment Cycle Number Scatter Visualizations", 
+    tabPanel("Experiment Sliding Distance Scatter Visualizations", 
              sidebarLayout(
                sidebarPanel(
                  # select variable for y-axis
@@ -154,23 +154,23 @@ ui <- fluidPage(
     ), ## Replace "plot3" with name of plot
     
     tabPanel("Experiment Bar Chart Visualizations",
-          sidebarLayout(
-             sidebarPanel(
-               selectInput(inputId = "experiment",
-                           label = "Experiment",
-                           choices=expsum$Experiment_Name),
-               selectInput(inputId = "metric",
-                           label = "Metric",
-                           choices=c("COF", "Ktotal", "K_MC2", "K_MC3", "K_MC4", "K_MC5")),
-               selectInput("scale", "Select Scale", choices = c("Linear", "Log")),
-               textInput("bar_color", "Bar Color", value = "#B61E2E"),
-             downloadButton("downloadBar", "Download")),
-             mainPanel(
-               plotlyOutput(outputId = "barPlot")
+             sidebarLayout(
+               sidebarPanel(
+                 selectInput(inputId = "experiment",
+                             label = "Experiment",
+                             choices=expsum$Experiment_Name),
+                 selectInput(inputId = "metric",
+                             label = "Metric",
+                             choices=c("COF", "Ktotal", "K_MC2", "K_MC3", "K_MC4", "K_MC5")),
+                 selectInput("scale", "Select Scale", choices = c("Linear", "Log")),
+                 textInput("bar_color", "Bar Color", value = "#B61E2E"),
+                 downloadButton("downloadBar", "Download")),
+               mainPanel(
+                 plotlyOutput(outputId = "barPlot")
+               )
              )
-          )
     )
-))
+  ))
 
 
 metricMap <- list("COF" = "mu", "Ktotal" = "KtotalMonte", "K_MC2" = "KtestMonteN2", "K_MC3" = "KtestMonteN3", "K_MC4" = "KtestMonteN4", "K_MC5" = "KtestMonteN5")
@@ -442,7 +442,7 @@ server <- function(input, output) {
       geom_col(fill = input$bar_color) +
       theme_minimal() +
       scale_x_continuous(limits=c(.5, maxExp+.5), breaks=1:maxExp) +
-      labs(x="Cycle Number", y=input$metric)
+      labs(x="Experiment Number", y=input$metric)
     
     if(input$scale == "Log") {
       plot <- plot +
