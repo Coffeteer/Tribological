@@ -75,16 +75,16 @@ server <- function(input, output) {
     })
     
     output$downloadBar <- downloadHandler(
-        filename = function() {
-            paste0(input$exp, "-", input$xvar, " vs ", input$yvar,  ".csv")
-        },
-        content = function(file) {
-            selectedyCol <- yvarMap[input$yvar][[1]]
-            selectedxCol <- xvarMap[input$xvar][[1]]
-            selectedData <- dplyr::filter(APSmetrics, Experiment_Name %in% !!input$exp) %>%
-                select(unlist(selectedxCol), unlist(selectedyCol))
-            write.csv(selectedData, file, row.names = FALSE)
-        }
+      filename = function() {
+        paste0(input$exp, "-", input$xvar, " vs ", input$yvar,  ".csv")
+      },
+      content = function(file) {
+        selectedyCol <- yvarMap[input$yvar][[1]]
+        selectedxCol <- xvarMap[input$xvar][[1]]
+        selectedData <- dplyr::filter(APSmetrics, Experiment_Name %in% !!input$exp) %>%
+          select(unlist(selectedxCol), unlist(selectedyCol))
+        write.csv(selectedData, file, row.names = FALSE)
+      }
     )
 }
 

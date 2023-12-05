@@ -63,7 +63,8 @@ ui <- fluidPage(
                              choices= c("Distance Slid", 
                                         "Cycle number")),
                  selectInput("y_scale", "Select Scale", choices = c("Linear", "Log")),
-                 textInput("point_color", "Point Color", value = "#B61E2E")
+                 textInput("point_color", "Point Color", value = "#B61E2E"),
+                 downloadButton("db_aps", "Download Data")
                  ),
                
                # Show a plot of the generated distribution
@@ -459,6 +460,19 @@ server <- function(input, output) {
       selectedCol <- metricMap[input$metric][[1]]
       selectedData <- filter(Data, Experiment_Name == input$experiment) %>%
         select(Experiment_Name, Experiment, unlist(selectedCol))
+      write.csv(selectedData, file, row.names = FALSE)
+    }
+  )
+  
+  output$db_aps <- downloadHandler(
+    filename = function() {
+      paste0(input$exp, "-", input$xvar, " vs ", input$yvar,  ".csv")
+    },
+    content = function(file) {
+      selectedyCol <- yvarMap[input$yvar][[1]]
+      selectedxCol <- xvarMap[input$xvar][[1]]
+      selectedData <- dplyr::filter(APSmetrics, Experiment_Name %in% !!input$exp) %>%
+        select(unlist(selectedxCol), unlist(selectedyCol))
       write.csv(selectedData, file, row.names = FALSE)
     }
   )
