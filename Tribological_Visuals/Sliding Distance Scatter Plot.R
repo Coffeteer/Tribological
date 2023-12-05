@@ -4,8 +4,11 @@ library(tidyverse)
 library(plotly)
 
 # read in data
-data.df <- readRDS("../RDS_files/data_df.rds")
-overview.df <- readRDS("..//RDS_files//overview_df.rds")
+data.df <- readRDS("data_df.rds")
+overview.df <- readRDS("overview_df.rds")
+# line 11 in app ______________________________________________________________________________________________________________________________________________
+tribometer.df <- readRDS("tribometer_df.rds")
+#______________________________________________________________________________________________________________________________________________________________
 
 # colors for plots
 color.vals <- c("#050505", "#f23838", "#f5903d", "#f5e533", "#09b309", 
@@ -141,10 +144,20 @@ server <- function(input, output) {
   # DATA
   # create plot data
   plot.df <- reactive({
+# line 245 in app ______________________________________________________________________________________________________________________________________________
     plot.df <- data.df %>% 
-      inner_join(overview.df, by=c("Experiment_Name"="SampleID")) %>%
-      mutate(vol_lost = (initialmass - mass) / density,
-             vol_lost_std = umass / density,
+      inner_join(overview.df, by=c("Experiment_Name"="SampleID")) %>% 
+      inner_join(Tribometer, by = c("Experiment_Name" = "experiment"))
+      colnames(plot.df)[colnames(plot.df) %in% c("X4", "X5")] <- c("um", "uL")
+      
+      plot.df <- plot.df %>% mutate(mloss = initialmass - mass,
+                                    umloss = um + umass,
+                                    vol_lost = mloss / density,
+             vol_lost_std = abs(vlost) * sqrt((umloss/mloss)^2 + 
+                                              (um/initialmass)^2 + 
+                                              (uL/L)^2 + 
+                                              (uL/H)^2 + 
+                                              (uL/W)^2),
              vol_lost_upper = vol_lost + vol_lost_std,
              vol_lost_lower = vol_lost - vol_lost_std,
              mu_upper = mu + muStd,
@@ -153,6 +166,7 @@ server <- function(input, output) {
       dplyr::select(SampleID, TotalDistance, vol_lost, vol_lost_std, 
                     vol_lost_lower, vol_lost_upper, mu, muStd, mu_lower, 
                     mu_upper)
+#______________________________________________________________________________________________________________________________________________________________
     return(plot.df)
   })
   
@@ -330,6 +344,7 @@ server <- function(input, output) {
     return(scatterplotly)
     
   })
+  
 }
 
 shinyApp(ui = ui, server = server)
