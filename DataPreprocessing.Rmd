@@ -2,9 +2,9 @@
 
 
 ```{r Load Libraries, warning=FALSE, message=FALSE}
-library(R.matlab)
-library(purrr)
-library(tidyverse)
+if(require(pacman)==0)
+{install.packages("pacman")}
+pacman::p_load(R.matlab, purrr, tidyverse)
 ```
 
 
@@ -15,7 +15,6 @@ output_file <- "./RDS_files/"
 # Specify the path to your folder with new experiments
 folder_path <- "./Mat_files"
 ```
-
 
 Use code chunk below if beginning database. Adds name and starting dataframes
 

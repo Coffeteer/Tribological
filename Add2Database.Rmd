@@ -1,9 +1,9 @@
 
 
 ```{r Load Libraries, warning=FALSE, message=FALSE}
-library(R.matlab)
-library(purrr)
-library(tidyverse)
+if(require(pacman)==0)
+{install.packages("pacman")}
+pacman::p_load(R.matlab, purrr, tidyverse)
 ```
 
 

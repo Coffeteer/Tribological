@@ -13,6 +13,12 @@ knitr::opts_chunk$set(echo = TRUE)
 file_location <- "./RDS_files/"
 ```
 
+```{r}
+if(require(pacman)==0)
+{install.packages("pacman")}
+pacman::p_load(tidyverse)
+```
+
 
 ```{r}
 APS <-readRDS(file = paste0(file_location, "averagePlusStd_df.rds"))

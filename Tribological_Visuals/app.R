@@ -1,12 +1,12 @@
-library(shiny)
-library(plotly)
-library(DT)
-library(shinythemes)
-library(tidyverse)
 
 
-# Need to set the working directory to the app.R file location
-# Need to run the experimentSummaries Script to update the files.
+if(require(pacman)==0)
+{install.packages("pacman")}
+pacman::p_load(shiny, plotly, DT, shinythemes, tidyverse)
+
+
+
+
 
 file_location <- "..//RDS_files//"
 
