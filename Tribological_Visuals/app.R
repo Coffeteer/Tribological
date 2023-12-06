@@ -6,8 +6,9 @@ library(tidyverse)
 
 APSmetrics <- readRDS("..//RDS_files//aps_metrics.rds")
 expsum <- readRDS("..//RDS_files//experiment_summaries.rds")
-Data <- readRDS(file = "../RDS_files/data_df.rds")
-overview.df <- readRDS("..//RDS_files//overview_df.rds")
+Data <- readRDS(file = "../RDS_files_new/data_df.rds")
+overview.df <- readRDS("..//RDS_files_new//overview_df.rds")
+tribometer.df <- readRDS("..//RDS_files_new//tribometer_df.rds")
 data.df <- Data
 APSmetrics <- APSmetrics %>%
   mutate(DistSlid = 2*time*Stroke)
@@ -243,14 +244,19 @@ server <- function(input, output) {
   # create plot data
   plot.df <- reactive({
     plot.df <- data.df %>% 
-      inner_join(overview.df, by=c("Experiment_Name"="SampleID")) %>%
-      mutate(vol_lost = (initialmass - mass) / density,
-             vol_lost_std = umass / density,
-             vol_lost_upper = vol_lost + vol_lost_std,
-             vol_lost_lower = vol_lost - vol_lost_std,
-             mu_upper = mu + muStd,
-             mu_lower = mu - muStd,
-             SampleID = as.factor(Experiment_Name)) %>%
+      inner_join(overview.df, by=c("Experiment_Name"="SampleID")) %>% 
+      inner_join(tribometer.df, by = c("Experiment_Name" = "experiment"))
+    colnames(plot.df)[colnames(plot.df) %in% c("X4", "X5")] <- c("um", "uL")
+    
+    plot.df <- plot.df %>% mutate(mloss = initialmass - mass,
+                                  umloss = um + umass,
+                                  vol_lost = mloss / density,
+                                  vol_lost_std = abs(vol_lost) * sqrt((umloss/mloss)^2 + (um/initialmass)^2 + (uL/L)^2 + (uL/H)^2 +  (uL/W)^2),
+                                  vol_lost_upper = vol_lost + vol_lost_std,
+                                  vol_lost_lower = vol_lost - vol_lost_std,
+                                  mu_upper = mu + muStd,
+                                  mu_lower = mu - muStd,
+                                  SampleID = as.factor(Experiment_Name)) %>%
       dplyr::select(SampleID, TotalDistance, vol_lost, vol_lost_std, 
                     vol_lost_lower, vol_lost_upper, mu, muStd, mu_lower, 
                     mu_upper)
