@@ -10,9 +10,10 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r}
-APS <-readRDS(file = "./RDS_files/averagePlusStd_df.rds")
-Overview <- readRDS(file = "./RDS_files/overview_df.rds")
-Data <- readRDS(file = "./RDS_files/data_df.rds")
+file_location <- "./TestOutput/"
+APS <-readRDS(file = paste0(file_location, "averagePlusStd_df.rds"))
+Overview <- readRDS(file = paste0(file_location, "overview_df.rds"))
+Data <- readRDS(file = paste0(file_location, "data_df.rds"))
 ```
 
 ```{r}
@@ -35,7 +36,7 @@ dataWithMetrics <- Data %>%
 APSWithMetrics <- APS %>%
   inner_join(exps, by=c("Experiment_Name"="SampleID"))
 
-saveRDS(APSWithMetrics, file = "./RDS_files/aps_metrics.rds")
+saveRDS(APSWithMetrics, file = paste0(file_location, "aps_metrics.rds"))
 
 experimentSummaries <- dataWithMetrics %>%
   group_by(Experiment_Name) %>%
@@ -60,7 +61,7 @@ experimentSummaries <- dataWithMetrics %>%
             Minor6 = Minor6[1],
             Percent6 = Percent6[1])
 
-saveRDS(experimentSummaries, file = "./RDS_files/experiment_summaries.rds")
+saveRDS(experimentSummaries, file = paste0(file_location, "experiment_summaries.rds"))
 ```
 
 

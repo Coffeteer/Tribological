@@ -1,0 +1,105 @@
+
+
+```{r Load Libraries, warning=FALSE, message=FALSE}
+library(R.matlab)
+library(purrr)
+library(tidyverse)
+```
+
+
+```{r Execute to add to database, eval=FALSE}
+# Select file path where existing RDS files are
+
+#Enter the file path including the following file names: \n
+ #          averagePlusStd_df.rds
+#           overview_df.rds
+#           data_df.rds
+#           tribometer_df.rds
+  data_file <- "./TestOutput/"
+
+  # Read in Existing RDS files
+ averagePlusStd_df<- readRDS( file = paste0(data_file, "averagePlusStd_df.rds"))
+ overview_df<- readRDS( file = paste0(data_file, "overview_df.rds"))
+ data_df<- readRDS( file = paste0(data_file, "data_df.rds"))
+ tribometer_df <- readRDS(file = paste0(data_file, "tribometer_df.rds"))
+  
+```
+
+
+```{r}
+# Specify the path to your folder with new experiments
+folder_path <- "./TestUpdate"
+
+# Get the list of file names in the folder
+file_names <- list.files(folder_path, full.names = TRUE)
+
+# Loop through each file and read it into a dataframe
+for (file in file_names) {
+  mat_file <- readMat(file)
+  name_part <- sub("Mat2.mat", "", basename(file)) # Extract "Mn20"or name of experiment
+  # APS extraction and conversion
+  data <- as.data.frame(mat_file[["loaded.data"]][[1]][[6]]) #Use it to extract average Plus Stnd List form
+  # Extract the data from list to a matrix
+  holder <- matrix(nrow  = dim(data[1])-1, ncol = 14)
+  for (i in 1:14) {
+    for (j in 2:dim(data)[1]) {
+      holder[j-1, i] <- as.numeric(data[[j, i]])
+    }
+  }
+  # Convert matrix to data frame and add a column with the experiment name
+  holder_df <-as.data.frame(holder) %>% 
+    mutate(V15 = name_part) 
+  colnames(holder_df) <- names(averagePlusStd_df)
+  # Add to master APS df
+  averagePlusStd_df <- rbind(averagePlusStd_df, holder_df)
+  
+  # Overview Extraction and conversion
+  overview_list <- mat_file[["overview.cell"]]
+  # Flatten the nested list
+  flattened_list <- map(overview_list, ~.[[1]])
+  # Convert the flattened list to a data frame
+  flat_df <- as.data.frame(flattened_list, stringsAsFactors = FALSE)
+  colnames(flat_df) <- names(overview_df)
+  # Add to master overview df
+  overview_df <- rbind(overview_df, flat_df)
+  
+  # data Extraction and conversion
+  
+  holder <- matrix(nrow  = 14, ncol = 40)
+  for (j in 1:40) {
+    for (i in 1:14) {
+      holder[i, j] <- as.numeric(mat_file[["data.cell"]][[i,j]])
+    }
+  }
+  holder_df <- as.data.frame(holder) %>% 
+    mutate(V41 = name_part)
+  colnames(holder_df) <- names(data_df)
+  # Add to master data df
+  data_df <- rbind(data_df, holder_df)
+  
+  # trib extraction and conversion
+  trib_list <- mat_file[["tribometer.cell"]]
+  # Flatten the nested list
+  flattened_list <- map(trib_list, ~.[[1]])
+  # Convert the flattened list to a data frame
+  flat_df <- as.data.frame(flattened_list, stringsAsFactors = FALSE)
+  flat_df <- flat_df %>% 
+    mutate(X8 = name_part)
+  colnames(flat_df) <- names(tribometer_df)
+  # Add to master overview df
+  tribometer_df <- rbind(tribometer_df, flat_df)
+  
+  }
+
+```
+
+
+```{r}
+# Select file path to save new RDS files to
+saveRDS(averagePlusStd_df, file = paste0(data_file, "averagePlusStd_df.rds"))
+saveRDS(overview_df, file =paste0(data_file, "overview_df.rds"))
+saveRDS(data_df, file = paste0(data_file, "data_df.rds"))
+saveRDS(tribometer_df, file = paste0(data_file, "tribometer_df.rds"))
+```
+```
+
