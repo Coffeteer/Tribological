@@ -8,6 +8,17 @@ library(tidyverse)
 ```
 
 
+```{r}
+# Select file path to save new RDS files to
+output_file <- "./RDS_files/"
+
+# Specify the path to your folder with new experiments
+folder_path <- "./Mat_files"
+```
+
+
+Use code chunk below if beginning database. Adds name and starting dataframes
+
 ```{r Prepare Names and dataframes}
 overview_names <- c("TribometerNumber", "EnableLog", "Sample", "SampleID", "Project", "Countersample", "Load", "Date", "Stroke", "Velocity", "User", "Environment", "OtherDetails", "L", "W", "H", "initialmass", "initialmassWithHolder", "initialReferenceMass", "density", "Major1", "Percent1", "Minor2", "Percent2", "Minor3", "Percent3", "Minor4", "Percent4", "Minor5", "Percent5", "Minor6", "Percent6")
 
@@ -15,22 +26,18 @@ data_names <- c("Experiment", "CompleteLog", "TestCycles", "TotalCycles", "TestS
 
 averagePlusStd_names <- c("time", "Fn1", "Ff1", "Humidity", "X", "MotorRev", "mu1", "time_std", "Fn1_std", "Ff1_std", "Humidity_std", "X_std", "MotorRev_std", "mu1_std", "Experiment_Name")
 
-tribometer_names <- c("un", "uf", "ud", "um", "ul", "pe", "po")
+tribometer_names <- c("un", "uf", "ud", "um", "ul", "pe", "po", "experiment")
 
 data_df <- data.frame(matrix(ncol = 41, nrow = 0))
 overview_df <- data.frame(matrix(ncol = 32, nrow = 0))
 averagePlusStd_df <- data.frame(matrix(ncol = 15, nrow = 0))
-tribometer_df <- data.frame(matrix(ncol = 7, nrow = 0))
+tribometer_df <- data.frame(matrix(ncol = 8, nrow = 0))
 
-
-# Create an empty list to store dataframes
-all_dataframes <- list()
 ```
 
+Reads in all properly formatting Mat Files in designated File.
 
 ```{r}
-# Specify the path to your folder
-folder_path <- "./Mat_files_new"
 
 # Get the list of file names in the folder
 file_names <- list.files(folder_path, full.names = TRUE)
@@ -85,6 +92,8 @@ for (file in file_names) {
   flattened_list <- map(trib_list, ~.[[1]])
   # Convert the flattened list to a data frame
   flat_df <- as.data.frame(flattened_list, stringsAsFactors = FALSE)
+  flat_df <- flat_df %>% 
+    mutate(X8 = name_part)
   colnames(flat_df) <- names(tribometer_df)
   # Add to master overview df
   tribometer_df <- rbind(tribometer_df, flat_df)
@@ -93,6 +102,7 @@ for (file in file_names) {
 
 ```
 
+Update the DF Names
 
 ```{r Set DF Names}
 colnames(averagePlusStd_df) <- averagePlusStd_names
@@ -101,19 +111,14 @@ colnames(data_df) <- data_names
 colnames(tribometer_df) <- tribometer_names
 ```
 
-```{r}
-
-trib_vec <- sub("Mat2.mat", "", basename(file_names))
-tribometer_df$experiment <- trib_vec
-```
 
 
+```{r Save RDS files}
 
-```{r Save read RDS files}
-saveRDS(averagePlusStd_df, file = "./RDS_files_new/averagePlusStd_df.rds")
-saveRDS(overview_df, file = "./RDS_files_new/overview_df.rds")
-saveRDS(data_df, file = "./RDS_files_new/data_df.rds")
-saveRDS(tribometer_df, file = "./RDS_files_new/tribometer_df.rds")
+saveRDS(averagePlusStd_df, file = paste0(output_file, "averagePlusStd_df.rds"))
+saveRDS(overview_df, file =paste0(output_file, "overview_df.rds"))
+saveRDS(data_df, file = paste0(output_file, "data_df.rds"))
+saveRDS(tribometer_df, file = paste0(output_file, "tribometer_df.rds"))
 ```
 
 

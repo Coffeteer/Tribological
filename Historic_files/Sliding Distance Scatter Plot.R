@@ -4,10 +4,10 @@ library(tidyverse)
 library(plotly)
 
 # read in data
-data.df <- readRDS("data_df.rds")
-overview.df <- readRDS("overview_df.rds")
+data.df <- readRDS("../RDS_files/data_df.rds")
+overview.df <- readRDS("../RDS_files/overview_df.rds")
 # line 11 in app ______________________________________________________________________________________________________________________________________________
-tribometer.df <- readRDS("tribometer_df.rds")
+tribometer.df <- readRDS("../RDS_files_new/tribometer_df.rds")
 #______________________________________________________________________________________________________________________________________________________________
 
 # colors for plots
@@ -21,9 +21,9 @@ names(color.vals) <- c("Black", "Red", "Orange", "Yellow", "Green", "Blue",
 
 # shapes for plots
 shape.vals <- c("Circle" = 16, "Square" = 15, "Triangle" = 17, 
-                       "Diamond" = 18, "Open Circle" = 1, "Open Square" = 0, 
-                       "Open Triangle" = 2, "Open Diamond" = 5, "Plus" = 3,
-                       "Cross" = 4, "Asterisk" = 8)
+                "Diamond" = 18, "Open Circle" = 1, "Open Square" = 0, 
+                "Open Triangle" = 2, "Open Diamond" = 5, "Plus" = 3,
+                "Cross" = 4, "Asterisk" = 8)
 
 # Volume lost as function of sliding distance (scatterplot with error bars)
 # Friction Coefficient as function of sliding distance (scatterplot with error bars)
@@ -31,11 +31,11 @@ shape.vals <- c("Circle" = 16, "Square" = 15, "Triangle" = 17,
 ui <- fluidPage(
   
   theme = shinytheme("flatly"),
-
+  
   titlePanel("Sliding Distance Scatterplots"),
   
   sidebarLayout(
-
+    
     sidebarPanel(
       
       # select variable for y-axis
@@ -111,8 +111,8 @@ ui <- fluidPage(
       downloadButton(outputId = "download.data", 
                      label = "Download Plot Data")
     ),
-        
-      
+    
+    
     # output: display plot
     mainPanel(
       plotlyOutput(outputId = "scatterplot")
@@ -144,16 +144,14 @@ server <- function(input, output) {
   # DATA
   # create plot data
   plot.df <- reactive({
-# line 245 in app ______________________________________________________________________________________________________________________________________________
+    # line 245 in app ______________________________________________________________________________________________________________________________________________
     plot.df <- data.df %>% 
       inner_join(overview.df, by=c("Experiment_Name"="SampleID")) %>% 
       inner_join(tribometer.df, by = c("Experiment_Name" = "experiment"))
-      colnames(plot.df)[colnames(plot.df) %in% c("X4", "X5")] <- c("um", "uL")
-      
       plot.df <- plot.df %>% mutate(mloss = initialmass - mass,
                                     umloss = um + umass,
                                     vol_lost = mloss / density,
-             vol_lost_std = abs(vol_lost) * sqrt((umloss/mloss)^2 + (um/initialmass)^2 + (uL/L)^2 + (uL/H)^2 +  (uL/W)^2),
+             vol_lost_std = abs(vol_lost) * sqrt((umloss/mloss)^2 + (um/initialmass)^2 + (ul/L)^2 + (ul/H)^2 +  (ul/W)^2),
              vol_lost_upper = vol_lost + vol_lost_std,
              vol_lost_lower = vol_lost - vol_lost_std,
              mu_upper = mu + muStd,
@@ -162,7 +160,7 @@ server <- function(input, output) {
       dplyr::select(SampleID, TotalDistance, vol_lost, vol_lost_std, 
                     vol_lost_lower, vol_lost_upper, mu, muStd, mu_lower, 
                     mu_upper)
-#______________________________________________________________________________________________________________________________________________________________
+    #______________________________________________________________________________________________________________________________________________________________
     return(plot.df)
   })
   
@@ -180,7 +178,7 @@ server <- function(input, output) {
       readr::write_rds(df, file)
     }
   )
- 
+  
   # PLOT
   output$scatterplot <- renderPlotly({
     # geom point aes based on color and shape input

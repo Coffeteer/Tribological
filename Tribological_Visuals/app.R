@@ -4,11 +4,17 @@ library(DT)
 library(shinythemes)
 library(tidyverse)
 
-APSmetrics <- readRDS("..//RDS_files//aps_metrics.rds")
-expsum <- readRDS("..//RDS_files//experiment_summaries.rds")
-Data <- readRDS(file = "../RDS_files_new/data_df.rds")
-overview.df <- readRDS("..//RDS_files_new//overview_df.rds")
-tribometer.df <- readRDS("..//RDS_files_new//tribometer_df.rds")
+
+# Need to set the working directory to the app.R file location
+# Need to run the experimentSummaries Script to update the files.
+
+file_location <- "..//RDS_files//"
+
+APSmetrics <- readRDS(paste0(file_location, "aps_metrics.rds"))
+expsum <- readRDS(file = paste0(file_location, "experiment_summaries.rds"))
+Data <- readRDS(file = paste0(file_location, "data_df.rds"))
+overview.df <- readRDS(file = paste0(file_location, "overview_df.rds"))
+tribometer.df <- readRDS(file = paste0(file_location, "tribometer_df.rds"))
 data.df <- Data
 APSmetrics <- APSmetrics %>%
   mutate(DistSlid = 2*time*Stroke)
@@ -246,12 +252,10 @@ server <- function(input, output) {
     plot.df <- data.df %>% 
       inner_join(overview.df, by=c("Experiment_Name"="SampleID")) %>% 
       inner_join(tribometer.df, by = c("Experiment_Name" = "experiment"))
-    colnames(plot.df)[colnames(plot.df) %in% c("X4", "X5")] <- c("um", "uL")
-    
     plot.df <- plot.df %>% mutate(mloss = initialmass - mass,
                                   umloss = um + umass,
                                   vol_lost = mloss / density,
-                                  vol_lost_std = abs(vol_lost) * sqrt((umloss/mloss)^2 + (um/initialmass)^2 + (uL/L)^2 + (uL/H)^2 +  (uL/W)^2),
+                                  vol_lost_std = abs(vol_lost) * sqrt((umloss/mloss)^2 + (um/initialmass)^2 + (ul/L)^2 + (ul/H)^2 +  (ul/W)^2),
                                   vol_lost_upper = vol_lost + vol_lost_std,
                                   vol_lost_lower = vol_lost - vol_lost_std,
                                   mu_upper = mu + muStd,

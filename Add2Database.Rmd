@@ -15,20 +15,25 @@ library(tidyverse)
 #           overview_df.rds
 #           data_df.rds
 #           tribometer_df.rds
-  data_file <- "./TestOutput/"
+data_file <- "./RDS_files/"
 
+# Specify the path to your folder with new experiments
+folder_path <- "./TestUpdate"
+
+```
+
+
+```{r}
   # Read in Existing RDS files
- averagePlusStd_df<- readRDS( file = paste0(data_file, "averagePlusStd_df.rds"))
- overview_df<- readRDS( file = paste0(data_file, "overview_df.rds"))
- data_df<- readRDS( file = paste0(data_file, "data_df.rds"))
- tribometer_df <- readRDS(file = paste0(data_file, "tribometer_df.rds"))
+averagePlusStd_df<- readRDS( file = paste0(data_file, "averagePlusStd_df.rds"))
+overview_df<- readRDS( file = paste0(data_file, "overview_df.rds"))
+data_df<- readRDS( file = paste0(data_file, "data_df.rds"))
+tribometer_df <- readRDS(file = paste0(data_file, "tribometer_df.rds"))
   
 ```
 
 
 ```{r}
-# Specify the path to your folder with new experiments
-folder_path <- "./TestUpdate"
 
 # Get the list of file names in the folder
 file_names <- list.files(folder_path, full.names = TRUE)
