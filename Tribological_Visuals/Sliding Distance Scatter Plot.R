@@ -147,17 +147,13 @@ server <- function(input, output) {
 # line 245 in app ______________________________________________________________________________________________________________________________________________
     plot.df <- data.df %>% 
       inner_join(overview.df, by=c("Experiment_Name"="SampleID")) %>% 
-      inner_join(Tribometer, by = c("Experiment_Name" = "experiment"))
+      inner_join(tribometer.df, by = c("Experiment_Name" = "experiment"))
       colnames(plot.df)[colnames(plot.df) %in% c("X4", "X5")] <- c("um", "uL")
       
       plot.df <- plot.df %>% mutate(mloss = initialmass - mass,
                                     umloss = um + umass,
                                     vol_lost = mloss / density,
-             vol_lost_std = abs(vlost) * sqrt((umloss/mloss)^2 + 
-                                              (um/initialmass)^2 + 
-                                              (uL/L)^2 + 
-                                              (uL/H)^2 + 
-                                              (uL/W)^2),
+             vol_lost_std = abs(vol_lost) * sqrt((umloss/mloss)^2 + (um/initialmass)^2 + (uL/L)^2 + (uL/H)^2 +  (uL/W)^2),
              vol_lost_upper = vol_lost + vol_lost_std,
              vol_lost_lower = vol_lost - vol_lost_std,
              mu_upper = mu + muStd,
