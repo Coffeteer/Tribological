@@ -476,7 +476,7 @@ server <- function(input, output) {
   
   output$db_aps <- downloadHandler(
     filename = function() {
-      paste0(input$exp, "-", input$xvar, " vs ", input$yvar,  ".csv")
+      paste0(input$exp, "-", input$yvar, " vs ", input$xvar,  ".csv")
     },
     content = function(file) {
       selectedyCol <- yvarMap[input$yvar][[1]]
