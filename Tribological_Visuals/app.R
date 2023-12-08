@@ -267,18 +267,18 @@ server <- function(input, output) {
     return(plot.df)
   })
   
-  # download .rds of data
+  # download .csv of data
   output$download.data <- downloadHandler(
-    filename = "SlidingDistPlotData.rds",
+    filename = "SlidingDistPlotData.csv",
     content = function(file) {
       if (input$y.var == "Volume Lost") {
         df <- plot.df() %>% filter(SampleID %in% input$exp) %>%
-          select(-mu, -muStd, -mu_lower, -mu_upper)
+          dplyr::select(-mu, -muStd, -mu_lower, -mu_upper)
       } else {
         df <- plot.df() %>% filter(SampleID %in% input$exp) %>%
-          select(-vol_lost, -vol_lost_std, -vol_lost_lower, -vol_lost_upper)
+          dplyr::select(-vol_lost, -vol_lost_std, -vol_lost_lower, -vol_lost_upper)
       }
-      readr::write_rds(df, file)
+      write.csv(df, file, row.names = FALSE)
     }
   )
   
