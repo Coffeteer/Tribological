@@ -219,7 +219,8 @@ server <- function(input, output) {
     
     if(input$y_scale == "Log") {
       p <- p +
-        scale_y_log10()
+        scale_y_log10() +
+        labs(title="", x=input$xvar, y=paste("Log of",input$yvar))
     }
     p
   })
