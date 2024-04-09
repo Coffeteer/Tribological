@@ -18,7 +18,7 @@ pacman::p_load(R.matlab, purrr, tidyverse)
 data_file <- "./RDS_files/"
 
 # Specify the path to your folder with new experiments
-folder_path <- "./TestUpdate"
+folder_path <- "./Mat_files"
 
 ```
 

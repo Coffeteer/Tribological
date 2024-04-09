@@ -60,6 +60,8 @@ experimentSummaries <- dataWithMetrics %>%
             Stroke = Stroke[1],
             Velocity = Velocity[1],
             Temperature = mean(T, na.rm=TRUE),
+            Major1 = Major1[1],
+            Percent1 = Percent1[1],
             Minor2 = Minor2[1],
             Percent2 = Percent2[1],
             Minor3 = Minor3[1],
